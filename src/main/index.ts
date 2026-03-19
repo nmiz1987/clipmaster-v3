@@ -1,5 +1,6 @@
 import { join } from "node:path";
-import { app, BrowserWindow, clipboard, ipcMain, globalShortcut, Notification, Tray, Menu } from "electron";
+import { app, BrowserWindow, clipboard, ipcMain, globalShortcut, Notification, Tray } from "electron";
+import Position from "electron-positioner";
 
 let tray: Tray | null = null;
 
@@ -12,6 +13,7 @@ const createWindow = () => {
     maxHeight: 800,
     maxWidth: 450,
     maximizable: false,
+    show: false,
     titleBarStyle: "hidden",
     titleBarOverlay: true,
     webPreferences: {
@@ -25,7 +27,7 @@ const createWindow = () => {
     mainWindow.loadFile(join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 
-  mainWindow.webContents.openDevTools({ mode: "detach" });
+  // mainWindow.webContents.openDevTools({ mode: "detach" });
 
   return mainWindow;
 };
@@ -33,23 +35,38 @@ const createWindow = () => {
 app.on("ready", () => {
   const browserWindow = createWindow();
 
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "Show window",
-      click: () => {
-        app.focus();
-        browserWindow.show();
-        browserWindow.focus();
-      },
-    },
-    {
-      label: "Quit",
-      role: "quit",
-    },
-  ]);
   tray = new Tray("./src/icons/trayTemplate.png");
-  tray.setContextMenu(contextMenu);
-  tray.on("click", () => {});
+  tray.setIgnoreDoubleClickEvents(true);
+
+  const positioner = new Position(browserWindow);
+
+  tray.on("click", () => {
+    if (!tray) return;
+    if (browserWindow.isVisible()) {
+      browserWindow.hide();
+      return;
+    }
+
+    const trayPosition = positioner.calculate("trayCenter", tray.getBounds());
+    browserWindow.setPosition(trayPosition.x, trayPosition.y);
+    browserWindow.show();
+  });
+
+  // const contextMenu = Menu.buildFromTemplate([
+  //   {
+  //     label: "Show window",
+  //     click: () => {
+  //       app.focus();
+  //       browserWindow.show();
+  //       browserWindow.focus();
+  //     },
+  //   },
+  //   {
+  //     label: "Quit",
+  //     role: "quit",
+  //   },
+  // ]);
+  // tray.setContextMenu(contextMenu);
 
   globalShortcut.register("CommandOrControl+Shift+Alt+C", () => {
     app.focus();
