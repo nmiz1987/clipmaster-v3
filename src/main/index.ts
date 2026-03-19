@@ -48,7 +48,6 @@ app.on("ready", () => {
     },
   ]);
   tray = new Tray("./src/icons/trayTemplate.png");
-
   tray.setContextMenu(contextMenu);
   tray.on("click", () => {});
 
