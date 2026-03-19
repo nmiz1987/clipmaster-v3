@@ -1,5 +1,7 @@
 import { join } from "node:path";
-import { app, BrowserWindow, clipboard, ipcMain, globalShortcut, Notification } from "electron";
+import { app, BrowserWindow, clipboard, ipcMain, globalShortcut, Notification, Tray, Menu } from "electron";
+
+let tray: Tray | null = null;
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -30,6 +32,25 @@ const createWindow = () => {
 
 app.on("ready", () => {
   const browserWindow = createWindow();
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Show window",
+      click: () => {
+        app.focus();
+        browserWindow.show();
+        browserWindow.focus();
+      },
+    },
+    {
+      label: "Quit",
+      role: "quit",
+    },
+  ]);
+  tray = new Tray("./src/icons/trayTemplate.png");
+
+  tray.setContextMenu(contextMenu);
+  tray.on("click", () => {});
 
   globalShortcut.register("CommandOrControl+Shift+Alt+C", () => {
     app.focus();
